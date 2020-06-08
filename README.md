@@ -1,2 +1,4 @@
 # hello-world
-My first repository
+
+Hello people!
+I learn Java and I want work with Java.

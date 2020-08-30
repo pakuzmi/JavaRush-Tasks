@@ -1,0 +1,65 @@
+package com.javarush.task.task31.task3101;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+
+/*
+Проход по дереву файлов
+*/
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        String path = args[0];
+        String resultFileAbsolutePath = args[1];
+
+        File file = new File(resultFileAbsolutePath);
+        File fileDestination = new File(file.getParent() + "\\allFilesContent.txt");
+        //Переименовываем файл
+        if (FileUtils.isExist(file)){
+            FileUtils.renameFile(file, fileDestination);
+        } else {
+            System.out.println("Файл: " + file.getAbsolutePath() + " не обнаружен");
+        }
+        //Выполняем обход дерева 
+        File fileDir = new File(path);
+        ArrayList<String> listFiles = new ArrayList<>();
+        walk(fileDir,listFiles);
+        //Заполняем мапу, где ключ - имя файла, а значение - полный путь к файлу
+        Map<String, String> mapFiles = new HashMap<>();
+        for (String val : listFiles){
+            File curFile = new File(val);
+            mapFiles.put(curFile.getName(), curFile.getPath());
+        }
+        //Сортируем полученные из мапы имена файлов
+        ArrayList<String> sortedFiles = new ArrayList<>(mapFiles.keySet());
+        Collections.sort(sortedFiles);
+        //Открываем поток на запись, читаем содержимое файлов, пишем их в результирующий файл
+        FileOutputStream fos = new FileOutputStream(fileDestination);
+        for (String val : sortedFiles){
+            byte[] bytes = Files.readAllBytes(Paths.get(mapFiles.get(val)));
+            if (bytes.length > 0){
+                fos.write(bytes);
+                fos.write(new String("\n").getBytes());
+            }
+        }
+        //Закрываем поток на запись
+        fos.close();
+    }
+    // Свой метод обхода дерева и проверка на размер файла
+    public static void walk(File directoryPath, ArrayList<String> filesList){
+        File[] files = directoryPath.listFiles();
+        for (int i = 0; i < files.length; i ++){
+            if (files[i].isFile()){
+                if ((files[i].length() <= 50)&&(files[i].length() > 0)) {
+                    filesList.add(files[i].getPath());
+                }
+            }
+            if (files[i].isDirectory()){
+                walk(files[i], filesList);
+            }
+        }
+    }
+}

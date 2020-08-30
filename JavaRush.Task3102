@@ -1,0 +1,52 @@
+package com.javarush.task.task31.task3102;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+
+/* 
+Находим все файлы
+*/
+public class Solution {
+    public static List<String> getFileTree(String root) throws IOException {
+        File fileDir = new File(root);
+        File[] files = fileDir.listFiles();
+        ArrayList<String> listFiles = new ArrayList<>();
+        Queue<String> queueDir = new ArrayDeque<>();
+        //Делаем первый обход, формируем первые элементы очереди
+        for (int i = 0; i < files.length; i ++){
+            if (files[i].isFile()){
+                listFiles.add(files[i].getPath());
+            }
+            if (files[i].isDirectory()){
+                queueDir.offer(files[i].getPath());
+            }
+        }
+        //Дальнейшие обходы происходят в цикле While, пока очередь не пустая. 
+        //Во время обхода очередь пополняется, если обнаружена директория.
+        while (queueDir.size() > 0){
+            fileDir = new File(queueDir.poll());
+            files = fileDir.listFiles();
+            for (int i = 0; i < files.length; i ++){
+                if (files[i].isFile()){
+                    listFiles.add(files[i].getPath());
+                }
+                if (files[i].isDirectory()){
+                    queueDir.offer(files[i].getPath());
+                }
+            }
+        }
+       return listFiles;
+    }
+
+    public static void main(String[] args)  {
+        try {
+            List<String> listFiles = getFileTree("C:\\JAVA\\TEST");
+            System.out.println(listFiles);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

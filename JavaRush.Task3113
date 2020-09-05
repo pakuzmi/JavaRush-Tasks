@@ -1,0 +1,79 @@
+/*Что внутри папки?
+Напиши программу, которая будет считать подробную информацию о папке и выводить ее на консоль.
+
+Первым делом считай путь к папке с консоли.
+Если введенный путь не является директорией - выведи "[полный путь] - не папка" и заверши работу.
+Затем посчитай и выведи следующую информацию:
+
+Всего папок - [количество папок в директории и поддиректориях]
+Всего файлов - [количество файлов в директории и поддиректориях]
+Общий размер - [общее количество байт, которое хранится в директории]
+
+Используй только классы и методы из пакета java.nio.
+
+Квадратные скобки [ ] выводить на экран не нужно.*/
+
+
+package com.javarush.task.task31.task3113;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.EnumSet;
+import java.util.concurrent.atomic.AtomicLong;
+
+/* 
+Что внутри папки?
+*/
+public class Solution extends SimpleFileVisitor<Path> {
+    AtomicLong size = new AtomicLong();
+    long files = 0;
+    long dirs = -1;
+
+    public static void main(String[] args) throws IOException {
+        final Solution solution = new Solution();
+        // Читаем имя директории из консоли
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        String directoryString = bufferedReader.readLine();
+        bufferedReader.close();
+        Path directoryPath = Paths.get(directoryString);
+        // Если прочитанное имя не является директорией - выход из программы
+        if (!Files.isDirectory(directoryPath)){
+            System.out.println(directoryString + " - не папка");
+            return;
+        }
+        EnumSet<FileVisitOption> options = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+        // Выполняем обход директории
+        Files.walkFileTree(directoryPath,options,30,solution);
+        // Выводим результат работы программы в консоль
+        System.out.println("Всего папок - " + solution.dirs);
+        System.out.println("Всего файлов - " + solution.files);
+        System.out.println("Общий размер - " + solution.size);
+
+    }
+        //Переопределяем метод visitFile для подсчета количества файлов и их размера
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            if (Files.isRegularFile(file)){
+                files++;
+                size.addAndGet(Files.size(file));
+            }
+            return super.visitFile(file,attrs);
+        }
+        //Переопределяем метод preVisitDirectory для подсчета количества папок
+        @Override
+        public FileVisitResult preVisitDirectory(Path file, BasicFileAttributes attrs) throws IOException {
+            dirs++;
+            return super.preVisitDirectory(file,attrs);
+        }
+        //Переопределяем метод visitFileFailed для пропуска файлов и папок доступ к которым запрещен
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException e) {
+
+           return FileVisitResult.SKIP_SUBTREE;
+         }
+    }
+
+
